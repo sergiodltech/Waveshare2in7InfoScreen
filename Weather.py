@@ -1,18 +1,18 @@
-import requests, sys
+import requests
 
 class Weather:
     domain = 'wttr.in'
     protocol = 'http'
     query_options = 'format=j1'
 
-    def __init__(self, place: str):
+    def __init__(self, place: str) -> None:
         self.SetLocation(place)
 
     def SetLocation(self, place: str) -> None:
         self.loc_query = {
             'NaraSentan': '~Nara+Institute+of+Science+and+Technology'
             }.get(place, '')
-        self.url = f'{protocol}://{domain}/{loc_place}?{query_options}'
+        self.url = f'{self.protocol}://{self.domain}/{self.loc_query}?{self.query_options}'
 
     def GetJsonData(self) -> dict:
         data = requests.get(self.url)
