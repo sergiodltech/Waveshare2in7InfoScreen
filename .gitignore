@@ -4,4 +4,5 @@ lib
 pyvenv.cfg
 Fonts
 __pycache__
+*.sublime-workspace
 

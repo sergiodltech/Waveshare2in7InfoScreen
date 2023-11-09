@@ -33,6 +33,7 @@ import sys
 import time
 
 logger = logging.getLogger(__name__)
+DEV_ENVIRON = True
 
 
 class RaspberryPi:
@@ -44,11 +45,12 @@ class RaspberryPi:
     PWR_PIN  = 18
 
     def __init__(self):
-        import spidev
-        import RPi.GPIO
+        if not DEV_ENVIRON:
+            import spidev
+            import RPi.GPIO
 
-        self.GPIO = RPi.GPIO
-        self.SPI = spidev.SpiDev()
+            self.GPIO = RPi.GPIO
+            self.SPI = spidev.SpiDev()
 
     def digital_write(self, pin, value):
         self.GPIO.output(pin, value)
