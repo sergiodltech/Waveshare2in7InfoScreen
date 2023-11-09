@@ -15,6 +15,7 @@ class ImageDrawer:
     customFontDir = ''
     margin = 6 # px
     interline = 5 # px
+    image = None
 
     def __init__(self, debug: bool = False) -> None:
         fontdir = os.path.join(
@@ -45,21 +46,21 @@ class ImageDrawer:
     def _canvas(self) -> ImageDraw.ImageDraw:
         screen_dims = (Screen.EPD_HEIGHT, Screen.EPD_WIDTH)
         self.log.debug(f'Screen Dimensions: {screen_dims}') # Landscape image
-        image = Image.new('L', screen_dims, 0) # 'L' for grayscale image
-        return ImageDraw.Draw(image)
+        self.image = Image.new('L', screen_dims, 0) # 'L' for grayscale image
+        return ImageDraw.Draw(self.image)
 
     def _relevantData(self, forecast: dict, isCurrent: bool = False) -> dict:
         if isCurrent:
             date = datetime.strptime(forecast['localObsDateTime'], '%Y-%m-%d %I:%M %p')
             return {
                 'ObservationDate': date,
-                'Humidity': forecast['humidity'] + '%',
+                'Humidity': forecast.get('humidity', ''),
                 'Temp': forecast['temp_' + self.tempUnit],
-                'FeelsLike': forecast['FeelsLike' + self.tempUnit],
-                'WindSpeed': forecast['windspeed' + self.windUnit],
+                'FeelsLike': forecast.get('FeelsLike' + self.tempUnit, ''),
+                'WindSpeed': forecast.get('windspeed' + self.windUnit, ''),
                 'WeatherCode': forecast['weatherCode'],
                 'Weather': forecast['weatherDesc'][0]['value'],
-                'Pressure': forecast['pressure' + self.pressureUnit],
+                'Pressure': forecast.get('pressure' + self.pressureUnit, ''),
             }
 
         date = datetime.strptime(forecast['date'], '%Y-%m-%d')
@@ -70,34 +71,34 @@ class ImageDrawer:
             'TempMin': forecast['mintemp' + self.tempUnit],
             'UVIndex': forecast['uvIndex'],
             'Morning': {
-                'Humidity': hourly[2]['humidity'] + '%',
+                'Humidity': hourly[2].get('humidity', ''),
                 'Temp': hourly[2]['temp' + self.tempUnit],
-                'FeelsLike': hourly[2]['FeelsLike' + self.tempUnit],
-                'WindSpeed': hourly[2]['windspeed' + self.windUnit],
+                'FeelsLike': hourly[2].get('FeelsLike' + self.tempUnit, ''),
+                'WindSpeed': hourly[2].get('windspeed' + self.windUnit, ''),
                 'WeatherCode': hourly[2]['weatherCode'],
                 'Weather': hourly[2]['weatherDesc'][0]['value'],
-                'Pressure': hourly[2]['pressure' + self.pressureUnit],
-                'Precipitation': hourly[2]['precip' + self.precipitationUnit],
+                'Pressure': hourly[2].get('pressure' + self.pressureUnit, ''),
+                'Precipitation': hourly[2].get('precip' + self.precipitationUnit, ''),
             },
             'Noon': {
-                'Humidity': hourly[4]['humidity'] + '%',
+                'Humidity': hourly[4].get('humidity', ''),
                 'Temp': hourly[4]['temp' + self.tempUnit],
-                'FeelsLike': hourly[4]['FeelsLike' + self.tempUnit],
-                'WindSpeed': hourly[4]['windspeed' + self.windUnit],
+                'FeelsLike': hourly[4].get('FeelsLike' + self.tempUnit, ''),
+                'WindSpeed': hourly[4].get('windspeed' + self.windUnit, ''),
                 'WeatherCode': hourly[4]['weatherCode'],
                 'Weather': hourly[4]['weatherDesc'][0]['value'],
-                'Pressure': hourly[4]['pressure' + self.pressureUnit],
-                'Precipitation': hourly[4]['precip' + self.precipitationUnit],
+                'Pressure': hourly[4].get('pressure' + self.pressureUnit, ''),
+                'Precipitation': hourly[4].get('precip' + self.precipitationUnit, ''),
             },
             'Night': {
-                'Humidity': hourly[7]['humidity'] + '%',
+                'Humidity': hourly[7].get('humidity', ''),
                 'Temp': hourly[7]['temp' + self.tempUnit],
-                'FeelsLike': hourly[7]['FeelsLike' + self.tempUnit],
-                'WindSpeed': hourly[7]['windspeed' + self.windUnit],
+                'FeelsLike': hourly[7].get('FeelsLike' + self.tempUnit, ''),
+                'WindSpeed': hourly[7].get('windspeed' + self.windUnit, ''),
                 'WeatherCode': hourly[7]['weatherCode'],
                 'Weather': hourly[7]['weatherDesc'][0]['value'],
-                'Pressure': hourly[7]['pressure' + self.pressureUnit],
-                'Precipitation': hourly[7]['precip' + self.precipitationUnit],
+                'Pressure': hourly[7].get('pressure' + self.pressureUnit, ''),
+                'Precipitation': hourly[7].get('precip' + self.precipitationUnit, ''),
             },
         }
 
@@ -116,12 +117,54 @@ class ImageDrawer:
     def WeatherScreen(self, place: str) -> ImageDraw.ImageDraw:
         data = self.Forecast(place)
         canvas = self._canvas()
+
         origin = (self.margin, self.margin)
-        canvas.text(origin, data['Today']['Date'].strftime('%a %d'), font = self.font24)
+        canvas.text(
+            origin,
+            data['Today']['Date'].strftime('%a %d'),
+            font = self.font24,
+            fill = Screen.GRAY1)
+
         line_two = (origin[0], origin[1] + 24 + self.interline)
-        canvas.text(line_two, '{0}'.format())
+        cur = data['Current']
+        feelsLike = cur['FeelsLike']
+        feelsLike = f'({feelsLike})' if feelsLike else ''
+        canvas.text(
+            line_two,
+            '{0}{1}°{2} {3}% {4} {5}km/h'.format(
+                cur['Temp'], feelsLike, self.tempUnit,
+                cur['Humidity'], cur['Pressure'], cur['WindSpeed']),
+            font = self.font35,
+            fill = Screen.GRAY1)
+
+        line_three = (origin[0], line_two[1] + 35 + self.interline)
+        today = data['Today']
+        canvas.text(
+            line_three,
+            '{0}/{1}°{2} UV{3} {4}({5})/{6}({7})/{8}({9})'.format(
+                today['TempMin'], today['TempMax'], self.tempUnit, today['UVIndex'],
+                today['Morning']['Weather'], today['Morning']['Precipitation'],
+                today['Noon']['Weather'], today['Noon']['Precipitation'],
+                today['Night']['Weather'], today['Night']['Precipitation'],),
+            font = self.font24,
+            fill = Screen.GRAY1)
+
+        line_four = (origin[0], line_three[1] + 24 + self.interline)
+        tomorror = data['Tomorrow']
+        canvas.text(
+            line_four,
+            '{0}/{1}°{2} UV{3} {4}({5})/{6}({7})/{8}({9})'.format(
+                tomorror['TempMin'], tomorror['TempMax'], self.tempUnit, tomorror['UVIndex'],
+                tomorror['Morning']['Weather'], tomorror['Morning']['Precipitation'],
+                tomorror['Noon']['Weather'], tomorror['Noon']['Precipitation'],
+                tomorror['Night']['Weather'], tomorror['Night']['Precipitation'],),
+            font = self.font24,
+            fill = Screen.GRAY1)
+
         return canvas
 
 if __name__ == '__main__':
     drawer = ImageDrawer(debug = True)
-    pprint(drawer.Forecast('NaraSentan'))
+    draw = drawer.WeatherScreen('NaraSentan')
+    if drawer.image:
+        drawer.image.show()
