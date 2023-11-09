@@ -13,6 +13,8 @@ import logging
 class ImageDrawer:
     useLocalFont = True
     customFontDir = ''
+    margin = 6 # px
+    interline = 5 # px
 
     def __init__(self, debug: bool = False) -> None:
         fontdir = os.path.join(
@@ -41,9 +43,9 @@ class ImageDrawer:
             self.log.setLevel(logging.DEBUG)
 
     def _canvas(self) -> ImageDraw.ImageDraw:
-        screen_dims = (Screen.EPD_WIDTH, Screen.EPD_HEIGHT)
-        self.log.debug(f'Screen Dimensions: {screen_dims}')
-        image = Image.new('L', screen_dims, 0)
+        screen_dims = (Screen.EPD_HEIGHT, Screen.EPD_WIDTH)
+        self.log.debug(f'Screen Dimensions: {screen_dims}') # Landscape image
+        image = Image.new('L', screen_dims, 0) # 'L' for grayscale image
         return ImageDraw.Draw(image)
 
     def _relevantData(self, forecast: dict, isCurrent: bool = False) -> dict:
@@ -99,7 +101,7 @@ class ImageDrawer:
             },
         }
 
-    def GetWeather(self, place: str) -> dict:
+    def Forecast(self, place: str) -> dict:
         weather = Weather(place)
         data = weather.GetJsonData()
         current = self._relevantData(data['current_condition'][0], True)
@@ -111,6 +113,15 @@ class ImageDrawer:
             'Tomorrow': tomorrow,
         }
 
+    def WeatherScreen(self, place: str) -> ImageDraw.ImageDraw:
+        data = self.Forecast(place)
+        canvas = self._canvas()
+        origin = (self.margin, self.margin)
+        canvas.text(origin, data['Today']['Date'].strftime('%a %d'), font = self.font24)
+        line_two = (origin[0], origin[1] + 24 + self.interline)
+        canvas.text(line_two, '{0}'.format())
+        return canvas
+
 if __name__ == '__main__':
     drawer = ImageDrawer(debug = True)
-    pprint(drawer.GetWeather('NaraSentan'))
+    pprint(drawer.Forecast('NaraSentan'))
