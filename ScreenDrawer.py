@@ -29,9 +29,9 @@ class ImageDrawer:
                 os.strerror(errno.ENOENT),
                 font_file)
 
+        self.font12 = ImageFont.truetype(font_file, 12)
         self.font18 = ImageFont.truetype(font_file, 18)
         self.font24 = ImageFont.truetype(font_file, 24)
-        self.font35 = ImageFont.truetype(font_file, 35)
         self.tempUnit = 'C' if USE_IS else 'F'
         self.windUnit = 'Kmph' if USE_IS else 'Miles'
         self.pressureUnit = '' if USE_IS else 'Inches'
@@ -61,6 +61,7 @@ class ImageDrawer:
                 'WeatherCode': forecast['weatherCode'],
                 'Weather': forecast['weatherDesc'][0]['value'],
                 'Pressure': forecast.get('pressure' + self.pressureUnit, ''),
+                'UVIndex': forecast['uvIndex'],
             }
 
         date = datetime.strptime(forecast['date'], '%Y-%m-%d')
@@ -122,43 +123,51 @@ class ImageDrawer:
         canvas.text(
             origin,
             data['Today']['Date'].strftime('%a %d'),
-            font = self.font24,
+            font = self.font12,
             fill = Screen.GRAY1)
 
-        line_two = (origin[0], origin[1] + 24 + self.interline)
+        line_two = (origin[0], origin[1] + 12 + self.interline)
         cur = data['Current']
         feelsLike = cur['FeelsLike']
         feelsLike = f'({feelsLike})' if feelsLike else ''
         canvas.text(
             line_two,
-            '{0}{1}°{2} {3}% {4} {5}km/h'.format(
+            '{0}{1}°{2} {3}% {4}km/h'.format(
                 cur['Temp'], feelsLike, self.tempUnit,
-                cur['Humidity'], cur['Pressure'], cur['WindSpeed']),
-            font = self.font35,
+                cur['Humidity'], cur['WindSpeed']),
+            font = self.font18,
             fill = Screen.GRAY1)
 
-        line_three = (origin[0], line_two[1] + 35 + self.interline)
-        today = data['Today']
+        line_three = (origin[0], line_two[1] + 18 + 3)
         canvas.text(
             line_three,
+            '{0} UV:{1} {2}mbar'.format(
+                cur['Weather'], cur['UVIndex'], cur['Pressure']),
+            font = self.font12,
+            fill = Screen.GRAY1)
+
+        line_four = (origin[0], line_three[1] + 12 + (self.interline*2))
+        today = data['Today']
+        canvas.text(
+            line_four,
             '{0}/{1}°{2} UV{3} {4}({5})/{6}({7})/{8}({9})'.format(
                 today['TempMin'], today['TempMax'], self.tempUnit, today['UVIndex'],
                 today['Morning']['Weather'], today['Morning']['Precipitation'],
                 today['Noon']['Weather'], today['Noon']['Precipitation'],
                 today['Night']['Weather'], today['Night']['Precipitation'],),
-            font = self.font24,
+            font = self.font12,
             fill = Screen.GRAY1)
 
-        line_four = (origin[0], line_three[1] + 24 + self.interline)
+        line_five = (origin[0], line_four[1] + 12 + self.interline)
         tomorror = data['Tomorrow']
         canvas.text(
-            line_four,
+            line_five,
             '{0}/{1}°{2} UV{3} {4}({5})/{6}({7})/{8}({9})'.format(
                 tomorror['TempMin'], tomorror['TempMax'], self.tempUnit, tomorror['UVIndex'],
                 tomorror['Morning']['Weather'], tomorror['Morning']['Precipitation'],
                 tomorror['Noon']['Weather'], tomorror['Noon']['Precipitation'],
                 tomorror['Night']['Weather'], tomorror['Night']['Precipitation'],),
-            font = self.font24,
+            font = self.font12,
             fill = Screen.GRAY1)
 
         return canvas
