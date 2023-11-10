@@ -53,38 +53,23 @@ WWO_CODE = {
 }
 
 WEATHER_SYMBOL = {
-    "Unknown":             u"2728",
-    "Cloudy":              u"2601",
-    "Fog":                 u"1f32b",
-    "HeavyRain":           u"1f327",
-    "HeavyShowers":        u"1f327",
-    "HeavySnow":           u"2744",
-    "HeavySnowShowers":    u"2744",
-    "LightRain":           u"1f326",
-    "LightShowers":        u"1f326",
-    "LightSleet":          u"1f327",
-    "LightSleetShowers":   u"1f327",
-    "LightSnow":           u"1f328",
-    "LightSnowShowers":    u"1f328",
-    "PartlyCloudy":        u"26c5",
-    "Sunny":               u"2600",
-    "ThunderyHeavyRain":   u"f1329",
-    "ThunderyShowers":     u"26c8",
-    "ThunderySnowShowers": u"26c8",
-    "VeryCloudy": u"2601",
+    "Unknown":             "\N{sparkles}",
+    "Cloudy":              "\N{cloud}",
+    "Fog":                 "\N{fog}",
+    "HeavyRain":           "\N{cloud with rain}",
+    "HeavyShowers":        "\N{cloud with rain}",
+    "HeavySnow":           "\N{snowflake}",
+    "HeavySnowShowers":    "\N{snowflake}",
+    "LightRain":           "\N{White Sun Behind Cloud with Rain}",
+    "LightShowers":        "\N{White Sun Behind Cloud with Rain}",
+    "LightSleet":          "\N{cloud with rain}",
+    "LightSleetShowers":   "\N{cloud with rain}",
+    "LightSnow":           "\N{cloud with snow}",
+    "LightSnowShowers":    "\N{cloud with snow}",
+    "PartlyCloudy":        "\N{White Sun with Small Cloud}",
+    "Sunny":               "\N{Black Sun with Rays}",
+    "ThunderyHeavyRain":   "\N{cloud with lightning}",
+    "ThunderyShowers":     "\N{Thunder Cloud and Rain}",
+    "ThunderySnowShowers": "\N{Thunder Cloud and Rain}",
+    "VeryCloudy":          "\N{cloud}",
 }
-
-# u26c5 Sun and cloudy
-# u26c8 Rain and lighthing
-# u2600 Sunny
-# u2601 Cloudy
-# u1f32b Overcast
-# u1f32c lady wind
-# u1f324 Sun with little cloud
-# u1f325 Sun with lots of cloud
-# u1f326 Sun with rainy cloud
-# u1f327 Rain
-# u1f328 Snow
-# uf1329 Lighthing
-# u2744 snowflake
-# u2728 sparkles
