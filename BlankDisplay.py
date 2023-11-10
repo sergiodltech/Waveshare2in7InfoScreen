@@ -24,16 +24,7 @@ if __name__ == '__main__':
         epd.init()
 
         epd.Clear(0xFF)
-        sleep(1)
         logger.debug("White Blanking")
-
-        epd.Clear(0xCC)
-        sleep(1)
-        logger.debug("Gray Blanking")
-
-        epd.Clear(0xFF)
-        logger.debug("White Blanking")
-
         epd.sleep()
 
     except IOError as e:
