@@ -10,7 +10,7 @@ from time import sleep
 
 import logging
 
-LOGGING_LEVEL = logging.DEBUG
+LOGGING_LEVEL = logging.INFO
 
 if __name__ == '__main__':
     epd = None
