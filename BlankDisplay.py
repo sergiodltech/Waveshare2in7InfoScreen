@@ -19,16 +19,20 @@ if __name__ == '__main__':
         logger = logging.getLogger(__name__)
         logger.setLevel(LOGGING_LEVEL)
 
+        logger.debug("Blanking display tool")
         epd = Screen.EPD()
         epd.init()
 
         epd.Clear(0xFF)
         sleep(1)
+        logger.debug("White Blanking")
 
         epd.Clear(0xCC)
         sleep(1)
+        logger.debug("Gray Blanking")
 
         epd.Clear(0xFF)
+        logger.debug("White Blanking")
 
         epd.sleep()
 
