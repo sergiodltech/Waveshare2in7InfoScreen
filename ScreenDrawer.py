@@ -42,7 +42,7 @@ class ImageDrawer:
     def _setFonts(self):
         fontdir = os.path.join(resources_dir, 'Fonts') if self.useLocalFont else self.customFontDir
 
-        font_file = os.path.join(fontdir, 'DejaVuSans.ttf')
+        font_file = os.path.join(fontdir, 'DejaVuSans-Bold.ttf')
         if not os.path.exists(font_file):
             raise FileNotFoundError(
                 errno.ENOENT,
@@ -53,7 +53,7 @@ class ImageDrawer:
         self.font18 = ImageFont.truetype(font_file, 18)
         self.font24 = ImageFont.truetype(font_file, 24)
 
-        font_file = os.path.join(fontdir, 'NotoEmoji-Regular.ttf')
+        font_file = os.path.join(fontdir, 'NotoEmoji-Bold.ttf')
         if not os.path.exists(font_file):
             raise FileNotFoundError(
                 errno.ENOENT,
@@ -76,7 +76,7 @@ class ImageDrawer:
 
     def _precipitationFormat(self, precipitation: str) -> str:
         precipInt = ceil(float(precipitation))
-        return '  ' if precipInt == 0 else f"({precipInt})"
+        return '  ' if precipInt == 0 else f"{precipInt}"
 
     def _joinWeatherPrecip(self, weatherCode: str, precipitation: str) -> str:
         icon = self._getWeatherIconUnicode(weatherCode)
@@ -173,11 +173,17 @@ class ImageDrawer:
                 cur['Humidity'], cur['WindSpeed']),
             font = self.font18,
             fill = Screen.GRAY4)
+        line_two_right = (Screen.EPD_HEIGHT - 22, line_two[1])
+        canvas.text(
+            line_two_right,
+            self._getWeatherIconUnicode(cur['WeatherCode']),
+            font = self.emoji18,
+            fill = Screen.GRAY4)
 
         line_three = (origin[0], line_two[1] + 18 + 3)
         canvas.text(
             line_three,
-            '{0} UV:{1} {2}mbar'.format(
+            '{0} uv{1} p{2}'.format(
                 cur['Weather'], cur['UVIndex'], cur['Pressure']),
             font = self.font12,
             fill = Screen.GRAY4)
@@ -186,12 +192,12 @@ class ImageDrawer:
         today = data['Today']
         canvas.text(
             line_four,
-            '{0}: {1}/{2}°{3} UV{4}'.format(
+            '{0}: {1}/{2}°{3} uv{4}'.format(
                 today['Date'].strftime('%a %d'),
                 today['TempMin'], today['TempMax'], self.tempUnit, today['UVIndex'],
             ),
             font = self.font12,
-            fill = Screen.GRAY3)
+            fill = Screen.GRAY4)
         line_four_right = (Screen.EPD_HEIGHT - 110, line_four[1])
         canvas.text(
             line_four_right,
@@ -204,7 +210,7 @@ class ImageDrawer:
             fill = Screen.GRAY4)
         canvas.text(
             (Screen.EPD_HEIGHT - 95, line_four[1]),
-            '{0} {1} {2}'.format(
+            '{0}  {1}  {2}'.format(
                 self._precipitationFormat(today['Morning']['Precipitation']),
                 self._precipitationFormat(today['Noon']['Precipitation']),
                 self._precipitationFormat(today['Night']['Precipitation']),
@@ -216,12 +222,12 @@ class ImageDrawer:
         tomorrow = data['Tomorrow']
         canvas.text(
             line_five,
-            '{0}: {1}/{2}°{3} UV{4}'.format(
+            '{0}: {1}/{2}°{3} uv{4}'.format(
                 tomorrow['Date'].strftime('%a %d'),
                 tomorrow['TempMin'], tomorrow['TempMax'], self.tempUnit, tomorrow['UVIndex'],
             ),
             font = self.font12,
-            fill = Screen.GRAY3)
+            fill = Screen.GRAY4)
         line_five_right = (Screen.EPD_HEIGHT - 110, line_five[1])
         canvas.text(
             line_five_right,
@@ -234,7 +240,7 @@ class ImageDrawer:
             fill = Screen.GRAY4)
         canvas.text(
             (Screen.EPD_HEIGHT - 95, line_five[1]),
-            '{0} {1} {2}'.format(
+            '{0}  {1}  {2}'.format(
                 self._precipitationFormat(tomorrow['Morning']['Precipitation']),
                 self._precipitationFormat(tomorrow['Noon']['Precipitation']),
                 self._precipitationFormat(tomorrow['Night']['Precipitation']),
