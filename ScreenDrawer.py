@@ -18,6 +18,10 @@ import logging
 
 USE_IS = True
 LOGGING_LEVEL = logging.INFO
+# The screen is designed as a vertical screen
+# For horizontal images the EDP2IN7 library automatically transposes the byte matrix to vertical
+CANVAS_WIDTH = Screen.EPD_HEIGHT
+CANVAS_HEIGHT = Screen.EPD_WIDTH
 
 class ImageDrawer:
     useLocalFont = True
@@ -25,6 +29,7 @@ class ImageDrawer:
     margin = 6 # px
     interline = 5 # px
     image = None
+    canvas = None
 
     def __init__(self, debug: bool = False) -> None:
         self.tempUnit = 'C' if USE_IS else 'F'
@@ -49,9 +54,9 @@ class ImageDrawer:
                 os.strerror(errno.ENOENT),
                 font_file)
 
-        self.font12 = ImageFont.truetype(font_file, 12)
-        self.font18 = ImageFont.truetype(font_file, 18)
-        self.font24 = ImageFont.truetype(font_file, 24)
+        self.fontSmall = ImageFont.truetype(font_file, 12)
+        self.fontMid = ImageFont.truetype(font_file, 14)
+        self.fontBig = ImageFont.truetype(font_file, 18)
 
         font_file = os.path.join(fontdir, 'NotoEmoji-Bold.ttf')
         if not os.path.exists(font_file):
@@ -60,15 +65,15 @@ class ImageDrawer:
                 os.strerror(errno.ENOENT),
                 font_file)
 
-        self.emoji12 = ImageFont.truetype(font_file, 12)
-        self.emoji18 = ImageFont.truetype(font_file, 18)
-        self.emoji24 = ImageFont.truetype(font_file, 24)
+        self.emojiSmall = ImageFont.truetype(font_file, 12)
+        self.emojiMid = ImageFont.truetype(font_file, 14)
+        self.emojiBig = ImageFont.truetype(font_file, 18)
 
-    def _canvas(self) -> ImageDraw.ImageDraw:
-        screen_dims = (Screen.EPD_HEIGHT, Screen.EPD_WIDTH)
+    def _setCanvas(self) -> None:
+        screen_dims = (CANVAS_WIDTH, CANVAS_HEIGHT)
         self.log.debug(f'Screen Dimensions: {screen_dims}') # Landscape image
         self.image = Image.new('L', screen_dims, 255) # 'L' for grayscale image
-        return ImageDraw.Draw(self.image)
+        self.canvas = ImageDraw.Draw(self.image)
 
     def _getWeatherIconUnicode(self, weatherCode: str) -> str:
         desc = Constants.WWO_CODE.get(weatherCode, "Unknown")
@@ -151,104 +156,112 @@ class ImageDrawer:
         self.log.debug("Forecast:\n{0}".format(pformat(forecast)))
         return forecast
 
+    def _insertDayWeatherSummary(self,
+            height: int,
+            data: dict
+        ) -> None:
+        if not self.canvas:
+            raise Exception("Canvas was not properly set")
+
+        self.canvas.text(
+            (CANVAS_WIDTH - 110, height),
+            self._getWeatherIconUnicode(data['Morning']['WeatherCode']),
+            font = self.emojiBig,
+            fill = Screen.GRAY4)
+        self.canvas.text(
+            (CANVAS_WIDTH - 90, height),
+            self._precipitationFormat(data['Morning']['Precipitation']),
+            font = self.fontMid,
+            fill = Screen.GRAY3)
+        self.canvas.text(
+            (CANVAS_WIDTH - 75, height),
+            self._getWeatherIconUnicode(data['Noon']['WeatherCode']),
+            font = self.emojiBig,
+            fill = Screen.GRAY4)
+        self.canvas.text(
+            (CANVAS_WIDTH - 55, height),
+            self._precipitationFormat(data['Noon']['Precipitation']),
+            font = self.fontMid,
+            fill = Screen.GRAY3)
+        self.canvas.text(
+            (CANVAS_WIDTH - 40, height),
+            self._getWeatherIconUnicode(data['Night']['WeatherCode']),
+            font = self.emojiBig,
+            fill = Screen.GRAY4)
+        self.canvas.text(
+            (CANVAS_WIDTH - 20, height),
+            self._precipitationFormat(data['Night']['Precipitation']),
+            font = self.fontMid,
+            fill = Screen.GRAY3)
+
+
     def WeatherScreen(self, place: str) -> ImageDraw.ImageDraw:
         data = self.Forecast(place)
-        canvas = self._canvas()
+        self._setCanvas()
+        if not self.canvas:
+            raise Exception("Canvas was not properly set")
 
-        origin = (self.margin, self.margin)
-        canvas.text(
+        now = datetime.now()
+        # On even minutes, shift the forecast to the lower margin of the screen
+        offset = 0 if now.minute % 2 else 60
+        origin = (self.margin, self.margin + offset)
+        self.canvas.text(
             origin,
             data['Today']['Date'].strftime('%a %d'),
-            font = self.font12,
+            font = self.fontSmall,
             fill = Screen.GRAY4)
 
         line_two = (origin[0], origin[1] + 12 + self.interline)
         cur = data['Current']
         feelsLike = cur['FeelsLike']
         feelsLike = f'({feelsLike})' if feelsLike else ''
-        canvas.text(
+        self.canvas.text(
             line_two,
             '{0}{1}°{2} {3}% {4}km/h'.format(
                 cur['Temp'], feelsLike, self.tempUnit,
                 cur['Humidity'], cur['WindSpeed']),
-            font = self.font18,
+            font = self.fontBig,
             fill = Screen.GRAY4)
-        line_two_right = (Screen.EPD_HEIGHT - 22, line_two[1])
-        canvas.text(
+        line_two_right = (CANVAS_WIDTH - 22, line_two[1])
+        self.canvas.text(
             line_two_right,
             self._getWeatherIconUnicode(cur['WeatherCode']),
-            font = self.emoji18,
+            font = self.emojiBig,
             fill = Screen.GRAY4)
 
         line_three = (origin[0], line_two[1] + 18 + 3)
-        canvas.text(
+        self.canvas.text(
             line_three,
             '{0} uv{1} p{2}'.format(
                 cur['Weather'], cur['UVIndex'], cur['Pressure']),
-            font = self.font12,
+            font = self.fontSmall,
             fill = Screen.GRAY4)
 
         line_four = (origin[0], line_three[1] + 12 + (self.interline*2))
         today = data['Today']
-        canvas.text(
+        self.canvas.text(
             line_four,
             '{0}: {1}/{2}°{3} uv{4}'.format(
                 today['Date'].strftime('%a %d'),
                 today['TempMin'], today['TempMax'], self.tempUnit, today['UVIndex'],
             ),
-            font = self.font12,
+            font = self.fontSmall,
             fill = Screen.GRAY4)
-        line_four_right = (Screen.EPD_HEIGHT - 110, line_four[1])
-        canvas.text(
-            line_four_right,
-            '{0} {1} {2}'.format(
-                self._getWeatherIconUnicode(today['Morning']['WeatherCode']),
-                self._getWeatherIconUnicode(today['Noon']['WeatherCode']),
-                self._getWeatherIconUnicode(today['Night']['WeatherCode']),
-            ),
-            font = self.emoji12,
-            fill = Screen.GRAY4)
-        canvas.text(
-            (Screen.EPD_HEIGHT - 95, line_four[1]),
-            '{0}  {1}  {2}'.format(
-                self._precipitationFormat(today['Morning']['Precipitation']),
-                self._precipitationFormat(today['Noon']['Precipitation']),
-                self._precipitationFormat(today['Night']['Precipitation']),
-            ),
-            font = self.font12,
-            fill = Screen.GRAY3)
+        self._insertDayWeatherSummary(line_four[1], today)
 
-        line_five = (origin[0], line_four[1] + 12 + self.interline)
+        line_five = (origin[0], line_four[1] + 12 + self.interline+3)
         tomorrow = data['Tomorrow']
-        canvas.text(
+        self.canvas.text(
             line_five,
             '{0}: {1}/{2}°{3} uv{4}'.format(
                 tomorrow['Date'].strftime('%a %d'),
                 tomorrow['TempMin'], tomorrow['TempMax'], self.tempUnit, tomorrow['UVIndex'],
             ),
-            font = self.font12,
+            font = self.fontSmall,
             fill = Screen.GRAY4)
-        line_five_right = (Screen.EPD_HEIGHT - 110, line_five[1])
-        canvas.text(
-            line_five_right,
-            '{0} {1} {2}'.format(
-                self._getWeatherIconUnicode(tomorrow['Morning']['WeatherCode']),
-                self._getWeatherIconUnicode(tomorrow['Noon']['WeatherCode']),
-                self._getWeatherIconUnicode(tomorrow['Night']['WeatherCode']),
-            ),
-            font = self.emoji12,
-            fill = Screen.GRAY4)
-        canvas.text(
-            (Screen.EPD_HEIGHT - 95, line_five[1]),
-            '{0}  {1}  {2}'.format(
-                self._precipitationFormat(tomorrow['Morning']['Precipitation']),
-                self._precipitationFormat(tomorrow['Noon']['Precipitation']),
-                self._precipitationFormat(tomorrow['Night']['Precipitation']),
-            ),
-            font = self.font12,
-            fill = Screen.GRAY3)
+        self._insertDayWeatherSummary(line_five[1], tomorrow)
 
-        return canvas
+        return self.canvas
 
 if __name__ == '__main__':
     drawer = ImageDrawer(debug = True)
