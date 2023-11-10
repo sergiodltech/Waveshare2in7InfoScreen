@@ -27,7 +27,7 @@ if __name__ == '__main__':
         epd.Clear(0xFF)
 
         epd.Init_4Gray()
-        epd.display_4Gray(epd.getbuffer_4Gray(draw))
+        epd.display_4Gray(epd.getbuffer_4Gray(drawer.image))
         epd.sleep()
 
     except IOError as e:
