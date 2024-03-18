@@ -6,4 +6,4 @@ Fonts
 __pycache__
 *.sublime-workspace
 config.yml
-
+lib64
