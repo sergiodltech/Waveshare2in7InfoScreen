@@ -1,5 +1,6 @@
 import sys
 import os
+import json
 
 resources_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')
 if os.path.exists(resources_dir):
@@ -154,6 +155,7 @@ class ImageDrawer:
             'Tomorrow': tomorrow,
         }
         self.log.debug("Forecast:\n{0}".format(pformat(forecast)))
+        self.log.info("Forecast: {0}".format(json.dumps(forecast['Current'], cls=DateTimeEncoder)))
         return forecast
 
     def _insertDayWeatherSummary(self,
@@ -262,6 +264,12 @@ class ImageDrawer:
         self._insertDayWeatherSummary(line_five[1], tomorrow)
 
         return self.canvas
+
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, datetime):
+            return o.isoformat()
+        return json.JSONEncoder.default(self, o)
 
 if __name__ == '__main__':
     drawer = ImageDrawer(debug = True)
