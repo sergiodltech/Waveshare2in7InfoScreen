@@ -91,7 +91,8 @@ class ImageDrawer:
 
     def _relevantData(self, forecast: dict, isCurrent: bool = False) -> dict:
         if isCurrent:
-            date = datetime.strptime(forecast['localObsDateTime'], '%Y-%m-%d %I:%M %p')
+            current_date_str = f"{datetime.today().isoformat()[:10]} {forecast['observation_time']}"
+            date = datetime.strptime(current_date_str, '%Y-%m-%d %I:%M %p')
             return {
                 'ObservationDate': date,
                 'Humidity': forecast.get('humidity', ''),
