@@ -4,5 +4,14 @@
 		{
 			"path": "."
 		}
-	]
+	],
+   "settings": {
+      "LSP": {
+         "LSP-basedpyright": {
+            "settings": {
+               "python.pythonPath": "./bin/python3",
+            }
+         }
+      }
+   }
 }

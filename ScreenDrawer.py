@@ -8,7 +8,7 @@ if os.path.exists(resources_dir):
 
 import errno
 from math import ceil
-from datetime import datetime
+from datetime import datetime, date
 from PIL import Image, ImageDraw, ImageFont
 from pprint import pformat
 from Weather import Weather

@@ -33,7 +33,7 @@ import sys
 import time
 
 logger = logging.getLogger(__name__)
-DEV_ENVIRON = False
+DEV_ENVIRON = True
 
 
 class RaspberryPi:
